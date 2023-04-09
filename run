@@ -1,0 +1,98 @@
+#!/bin/sh
+APP_NAME=xx-runnerx
+NET_NAME=bridge1
+IMAGE_NAME=runner-xx
+
+auto_create_bridge() {
+  docker network ls | grep "$NET_NAME" > /dev/null
+  if [ ! $? = 0 ]; then docker network create $NET_NAME; fi
+}
+
+docker_build() {
+  auto_create_bridge
+
+  # docker build --no-cache --pull -t $APP_NAME:latest -f dockerfile ./
+  docker build -t $IMAGE_NAME:latest -f dockerfile ./
+}
+
+# Start database if it is not already running
+docker_checkrun_db() {
+  if [ ! -z "$DATABASE_CONTAINER_NAME" ]; then
+    if [ ! "$(docker ps -q -f name=$DATABASE_CONTAINER_NAME)" ]; then
+      pushd $DATABASE_CONTAINER_PATH
+      ./run start
+      popd
+    fi
+  fi
+}
+
+docker_start() {
+  # docker_checkrun_db
+  if [ "$(docker ps -a -q -f name=$APP_NAME)" ]; then
+    echo ">> Starting existing container:"
+    docker container start $APP_NAME
+  else
+    echo ">> Launching new container"
+    # --rm 
+    docker run -dit --restart=always \
+    --net $NET_NAME \
+    -v $PWD/data:/opt/data \
+    -v $PWD/entry.sh:/opt/entry.sh \
+    --name $APP_NAME \
+    $IMAGE_NAME:latest \
+    /opt/entry.sh start 
+  fi
+}
+
+docker_reload() {
+  echo "TODO reload function undefined"
+  # docker exec -it $APP_NAME apachectl -k graceful
+}
+
+docker_stop() {
+  docker stop -t 2 $APP_NAME
+}
+
+docker_remove() {
+  echo ">> Deleting container:"
+  docker stop -t 2 $APP_NAME
+  docker container rm $APP_NAME
+}
+
+docker_term() {
+  docker exec -it $APP_NAME /bin/bash
+}
+
+docker_dev_start() {
+  docker run -dit \
+  --net $NET_NAME \
+  -v $PWD/data:/opt/data \
+  -v $PWD/entry.sh:/opt/entry.sh \
+  --entrypoint /opt/entry.sh \
+  --name ubudev \
+  ubuntu:focal \
+  /bin/bash
+}
+
+docker_dev_stop() {
+  docker stop -t 1 ubudev
+}
+
+docker_devterm() {
+  docker exec -it ubudev /bin/bash
+}
+
+if [ "$1" = "bridge" ]; then docker_create_bridge; exit; fi
+if [ "$1" = "build" ]; then docker_build; exit; fi
+if [ "$1" = "start" ]; then docker_start; exit; fi
+if [ "$1" = "reload" ]; then docker_reload; exit; fi
+if [ "$1" = "stop" ]; then docker_stop; exit; fi
+if [ "$1" = "rm" ]; then docker_remove; exit; fi
+if [ "$1" = "term" ]; then docker_term; exit; fi
+
+# For development when contructing container
+if [ "$1" = "devstart" ]; then docker_dev_start; exit; fi
+if [ "$1" = "devstop" ]; then docker_dev_stop; exit; fi
+if [ "$1" = "devterm" ]; then docker_devterm; exit; fi
+
+echo "Command not found"
