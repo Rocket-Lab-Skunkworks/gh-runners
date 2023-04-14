@@ -36,6 +36,7 @@ docker_start() {
     # --rm 
     docker run -dit --restart=always \
     --net $NET_NAME \
+    -v /var/run/docker.sock:/var/run/docker.sock \
     -v $PWD/data:/opt/data \
     -v $PWD/entry.sh:/opt/entry.sh \
     --name $APP_NAME \
