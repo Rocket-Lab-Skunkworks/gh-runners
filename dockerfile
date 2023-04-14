@@ -7,7 +7,7 @@ RUN apt-get upgrade -y
 RUN DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install unzip zip curl ca-certificates \
   git openjdk-11-jdk gnupg openssh-client docker.io procps \
   # for website monitoring
-  chromium \
+  chromium chromium-sandbox \
   # for aws-cli
   python3 python3-pip \
   # for github actions runner
@@ -25,7 +25,7 @@ COPY entry.sh /opt/entry.sh
 ### Setup docker to use host docker daemon for all container users
 # IP address below is for the first additional docker network created
 # The default network will have an IP of 172.17.0.1 instead
-RUN echo "export DOCKER_HOST=tcp://172.18.0.1:2375" > /etc/profile.d/common.sh
+RUN echo "## NOT USED export DOCKER_HOST=tcp://172.18.0.1:2375" > /etc/profile.d/common.sh
 
 
 ### Setup Node JS for user1
