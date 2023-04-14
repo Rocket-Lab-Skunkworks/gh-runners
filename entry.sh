@@ -67,6 +67,7 @@ install_gh_runner() {
 
 app_start() {
   if [ ! -f /home/user1/actions-runner/.credentials ]; then
+    chmod a+rw /var/run/docker.sock
     echo "Runner not configured, running shell"
     /bin/sh
   else
