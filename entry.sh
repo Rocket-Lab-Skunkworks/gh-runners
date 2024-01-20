@@ -5,7 +5,7 @@ install_android_sdk() {
   # https://dl.google.com/android/repository/emulator-darwin_x64-7395805.zip
   # https://dl.google.com/android/repository/emulator-linux_x64-7395805.zip
   # https://dl.google.com/android/repository/emulator-windows_x64-7395805.zip
-  CMDTOOLS_FILE=commandlinetools-linux-9477386_latest.zip
+  CMDTOOLS_FILE=commandlinetools-linux-11076708_latest.zip
   EMULATOR_FILE=emulator-linux_x64-7395805.zip
 
   # change to sdkmanager for linux/mac or sdkmanager.bat for windows same for avdmanager
@@ -29,7 +29,7 @@ install_android_sdk() {
 
 install_nvm() {
 # export NVM_DIR=~/.nvm
-# export NODE_VERSION=18.15.0
+# export NODE_VERSION=18.19.0
 # export NODE_PATH=$NVM_DIR/v$NODE_VERSION/lib/node_modules
 # export PATH=$NVM_DIR/v$NODE_VERSION/bin:$PATH
 
@@ -56,7 +56,7 @@ install_aws_cli() {
 }
 
 install_gh_runner() {
-  GHA_VERSION="2.303.0"
+  GHA_VERSION="2.311.0"
   if [ "$(id -u)" = "0" ]; then echo "Do not install Github actions runner as root"; exit 255 ; fi
 
   cd ~/
