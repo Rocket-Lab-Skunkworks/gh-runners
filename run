@@ -39,6 +39,7 @@ docker_start() {
     -v /var/run/docker.sock:/var/run/docker.sock \
     -v $PWD/data:/opt/data \
     -v $PWD/entry.sh:/opt/entry.sh \
+    --user $UID:$GID \
     --name $APP_NAME \
     $IMAGE_NAME:latest \
     /opt/entry.sh start 
@@ -70,8 +71,8 @@ docker_dev_start() {
   -v $PWD/data:/opt/data \
   -v $PWD/entry.sh:/opt/entry.sh \
   --entrypoint /opt/entry.sh \
-  --name ubudev \
-  ubuntu:focal \
+  --name uj \
+  ubuntu:jammy \
   /bin/bash
 }
 
@@ -91,7 +92,7 @@ if [ "$1" = "stop" ]; then docker_stop; exit; fi
 if [ "$1" = "rm" ]; then docker_remove; exit; fi
 if [ "$1" = "term" ]; then docker_term; exit; fi
 
-# For development when contructing container
+# For development when constructing container
 if [ "$1" = "devstart" ]; then docker_dev_start; exit; fi
 if [ "$1" = "devstop" ]; then docker_dev_stop; exit; fi
 if [ "$1" = "devterm" ]; then docker_devterm; exit; fi
