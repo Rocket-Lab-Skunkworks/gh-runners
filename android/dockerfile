@@ -5,7 +5,7 @@ RUN apt-get update
 RUN apt-get upgrade -y
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install unzip zip curl ca-certificates \
-  git openjdk-11-jdk gnupg openssh-client docker.io procps \
+  git openjdk-17-jdk gnupg openssh-client docker.io procps \
   # for website monitoring
   chromium-browser \
   # for aws-cli
