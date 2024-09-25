@@ -1,0 +1,199 @@
+#!/bin/sh
+# This script helps you to quickly spin up a persistent debain container with all data stored in the current folder
+
+APP_NAME=lnx-vm3
+NET_NAME=bridge1
+
+EXT_ROOT_PATH=_rootfs
+INT_CURRENT_PATH=/opt/currfs
+INT_ROOT_PATH=$INT_CURRENT_PATH/$EXT_ROOT_PATH
+
+# IMAGE_TAG="debian:12-slim"
+IMAGE_TAG="ubuntu:22.04"
+
+LOCAL_DEBIAN_SOURCE="# deb [trusted=yes] http://172.18.0.1:1122/deb12arm64 stable main contrib non-free-firmware"
+# EXTERNAL_DEBIAN_SOURCE="# deb https://debian.mirror.digitalpacific.com.au/debian bookworm main contrib non-free-firmware"
+# EXTERNAL_DEBIAN_SOURCE="deb [trusted=yes] http://ftp.au.debian.org/debian/ bookworm main contrib non-free-firmware"
+EXTERNAL_DEBIAN_SOURCE="deb [trusted=yes] http://mirror.aarnet.edu.au/ubuntu/ jammy main universe"
+
+# --runtime=sysbox-runc
+COMMON_RUN_OPTIONS="--net $NET_NAME
+-v $PWD:$INT_CURRENT_PATH"
+
+
+RUNTIME_VOLUMES="-v $PWD/$EXT_ROOT_PATH/etc:/etc
+-v $PWD/$EXT_ROOT_PATH/home:/home
+-v $PWD/$EXT_ROOT_PATH/root:/root
+-v $PWD/$EXT_ROOT_PATH/usr:/usr
+-v $PWD/$EXT_ROOT_PATH/var:/var"
+
+
+auto_create_bridge() {
+  docker network ls | grep "$NET_NAME" > /dev/null
+  if [ ! $? = 0 ]; then docker network create $NET_NAME; fi
+}
+
+
+create_data_folder() {
+  if [ ! -d $PWD/$EXT_ROOT_PATH ]; then mkdir -p $PWD/$EXT_ROOT_PATH ; fi
+}
+
+
+container_init_step1() {
+  echo "** Initializing Container - Step 1"
+
+  # Copy data folders to root
+  for FOLDER in etc home root usr var; do
+    echo "Copying folder $FOLDER"
+    cp -R /$FOLDER $INT_ROOT_PATH/
+  done
+
+  # Configure root user
+  echo "alias dir=\"ls -hal --color\"" >> "$INT_ROOT_PATH/root/.bashrc"
+  echo 'shell -/bin/bash
+caption always "%n(%t) : %C"
+defscrollback 4098
+startup_message off' >> "$INT_ROOT_PATH/root/.screenrc"
+
+  # Configure Apt source
+  mv $INT_ROOT_PATH/etc/apt/sources.list.d/debian.sources $INT_ROOT_PATH/etc/apt/sources.list.d/debian.disabled
+  echo "$LOCAL_DEBIAN_SOURCE" > "$INT_ROOT_PATH/etc/apt/sources.list"
+  echo "$EXTERNAL_DEBIAN_SOURCE" >> "$INT_ROOT_PATH/etc/apt/sources.list"
+}
+
+
+container_init_step2() {
+  echo "** Initializing Container - Step 2"
+  HOST_USER_ID=$1
+
+  # Create user
+  adduser --uid $HOST_USER_ID --gecos "" --disabled-password user1
+  # usermod -aG sudo user1
+  # echo 'user1:changeme' | chpasswd
+
+  # Install programs
+  apt update
+  apt upgrade -y
+  apt install -y --no-install-recommends ca-certificates curl procps vim-tiny iproute2 iputils-ping \
+    screen htop
+}
+
+
+container_initialise() {
+  CURRENT_USER_ID=$(id -u)
+
+  echo ">> Container data not found - initializing"
+  docker run --rm -t $COMMON_RUN_OPTIONS --name=$APP_NAME $IMAGE_TAG $INT_CURRENT_PATH/run cinit1
+  if [ ! $? = 0 ]; then echo ">> ERROR: Initialization step 1 failed" ; exit 1 ; fi
+
+  docker run --rm -t $COMMON_RUN_OPTIONS $RUNTIME_VOLUMES --name=$APP_NAME $IMAGE_TAG $INT_CURRENT_PATH/run cinit2 $CURRENT_USER_ID
+  if [ ! $? = 0 ]; then echo ">> ERROR: Initialization step 2 failed" ; exit 1 ; fi
+}
+
+
+docker_start() {
+  create_data_folder
+
+  if [ ! -d "$PWD/$EXT_ROOT_PATH/etc" ]; then container_initialise ; fi
+
+  if [ "$(docker ps -a -q -f name=$APP_NAME)" ]; then
+    echo ">> Starting existing container:"
+    docker container start $APP_NAME
+  else
+    CURRENT_USER_GROUP="$(id -u):$(id -g)"
+    # --user $CURRENT_USER_GROUP
+    runcmd="docker run -dit $COMMON_RUN_OPTIONS $RUNTIME_VOLUMES --user user1 \
+      --name=$APP_NAME $IMAGE_TAG $INT_CURRENT_PATH/run entry"
+
+    echo $runcmd
+    $runcmd
+  fi
+}
+
+
+app_rm() {
+  docker stop -t 1 $APP_NAME
+  docker container rm $APP_NAME
+  # display_stop
+  # audio_stop
+}
+
+
+app_clean() {
+  docker stop -t 1 $APP_NAME
+  docker container rm $APP_NAME
+  sudo rm -rf $EXT_ROOT_PATH
+}
+
+
+app_backup() {
+  CURRENT_USER_ID=$(id -u)
+  CURRENT_GROUP_ID=$(id -g)
+  docker run --rm -t $COMMON_RUN_OPTIONS --name=$APP_NAME $IMAGE_TAG sh -c \
+    "cd $INT_ROOT_PATH; tar -czvf $INT_CURRENT_PATH/rootfs.tgz . ; chown $CURRENT_USER_ID:$CURRENT_GROUP_ID $INT_CURRENT_PATH/rootfs.tgz"
+}
+
+
+app_restore() {
+  create_data_folder
+  docker run --rm -t $COMMON_RUN_OPTIONS --name=$APP_NAME $IMAGE_TAG sh -c "cd $INT_ROOT_PATH; tar -xzvf $INT_CURRENT_PATH/rootfs.tgz"
+}
+
+
+start_services() {
+  echo "** Starting services"
+  # service dbus start
+  # NetworkManager&
+  /opt/currfs/setup.sh start
+}
+
+image_entry() {
+  echo "** Starting Container based VM"
+  start_services
+
+  read -p "" NOT_USED_READ_VARIABLE_${RANDOM}
+}
+
+increase_watchers() {
+  echo "fs.inotify.max_user_instances=256" >> /etc/sysctl.conf
+  echo "fs.inotify.max_user_watches=131070" >> /etc/sysctl.conf
+
+  sysctl fs.inotify.max_user_instances=256
+  sysctl fs.inotify.max_user_watches=131070
+  sysctl -p
+}
+
+check_file_watchers() {
+  if [ -f "/proc/sys/fs/inotify/max_user_watches" ]; then
+    CURRENT_LIMIT=$(cat /proc/sys/fs/inotify/max_user_watches)
+    if [ $CURRENT_LIMIT -lt 131070 ]; then
+      echo "WARNING: host file watch limit below threshold.  Current value: $CURRENT_LIMIT"
+      echo "type sudo ./run increase-watchers  to increase limit"
+      exit
+    fi
+  fi
+}
+
+# Check linux system requirements
+if [ "$1" = "increase-watchers" ]; then increase_watchers; exit; fi
+check_file_watchers
+
+
+if [ "$1" = "cinit1" ]; then container_init_step1; exit $?; fi
+if [ "$1" = "cinit2" ]; then container_init_step2 $2; exit $?; fi
+
+if [ "$1" = "start" ]; then auto_create_bridge ; docker_start ; exit $?; fi
+if [ "$1" = "stop" ]; then docker stop -t 1 $APP_NAME ; exit $?; fi
+if [ "$1" = "rm" ]; then app_rm ; exit $?; fi
+if [ "$1" = "logs" ]; then docker logs $2 $3 $4 $APP_NAME;  exit $?; fi
+if [ "$1" = "term" ]; then docker exec -it $APP_NAME /bin/bash ; exit $?; fi
+if [ "$1" = "root" ]; then docker exec --user 0:0 -it $APP_NAME /bin/bash ; exit $?; fi
+
+if [ "$1" = "clean" ]; then app_clean ; exit $?; fi
+if [ "$1" = "backup" ]; then app_backup ; exit $?; fi
+if [ "$1" = "restore" ]; then app_restore ; exit $?; fi
+
+if [ "$1" = "entry" ]; then image_entry; exit $?; fi
+
+
+echo "Command not found"
