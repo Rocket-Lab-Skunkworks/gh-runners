@@ -104,7 +104,7 @@ docker_start() {
   else
     CURRENT_USER_GROUP="$(id -u):$(id -g)"
     # --user $CURRENT_USER_GROUP
-    runcmd="docker run -dit $COMMON_RUN_OPTIONS $RUNTIME_VOLUMES \
+    runcmd="docker run --restart=always -dit $COMMON_RUN_OPTIONS $RUNTIME_VOLUMES \
       --name=$APP_NAME $IMAGE_TAG $INT_CURRENT_PATH/run entry"
 
     echo $runcmd
