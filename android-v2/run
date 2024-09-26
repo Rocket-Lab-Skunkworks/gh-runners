@@ -11,10 +11,12 @@ INT_ROOT_PATH=$INT_CURRENT_PATH/$EXT_ROOT_PATH
 # IMAGE_TAG="debian:12-slim"
 IMAGE_TAG="ubuntu:22.04"
 
-LOCAL_DEBIAN_SOURCE="# deb [trusted=yes] http://172.18.0.1:1122/deb12arm64 stable main contrib non-free-firmware"
+# LOCAL_DEBIAN_SOURCE="# deb [trusted=yes] http://172.18.0.1:1122/deb12arm64 stable main contrib non-free-firmware"
 # EXTERNAL_DEBIAN_SOURCE="# deb https://debian.mirror.digitalpacific.com.au/debian bookworm main contrib non-free-firmware"
 # EXTERNAL_DEBIAN_SOURCE="deb [trusted=yes] http://ftp.au.debian.org/debian/ bookworm main contrib non-free-firmware"
-EXTERNAL_DEBIAN_SOURCE="deb [trusted=yes] http://mirror.aarnet.edu.au/ubuntu/ jammy main universe"
+
+LOCAL_DEBIAN_SOURCE="deb [trusted=yes] http://mirror.aarnet.edu.au/ubuntu/ jammy main universe"
+EXTERNAL_DEBIAN_SOURCE="deb [trusted=yes] http://mirror.aarnet.edu.au/ubuntu/ jammy-updates main universe"
 
 # --runtime=sysbox-runc
 COMMON_RUN_OPTIONS="--net $NET_NAME
