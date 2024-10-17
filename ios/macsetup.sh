@@ -22,7 +22,7 @@ echo 'export PATH="/usr/local/opt/ruby@3.0/bin:$PATH"' >> .zshrc
 echo 'export PATH="$HOME/.gem/ruby/3.0.0/bin:$PATH"' >> .zshrc
 echo 'export PATH="/usr/local/opt/ruby@3.0/bin:$PATH"' >> .zshrc
 
-gem install cocoapods -v 1.14.3 --user-install
+gem install cocoapods -v 1.15.2 --user-install
 
 # install java for utility tools
 brew install openjdk@11
