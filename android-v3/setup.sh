@@ -205,11 +205,11 @@ if [ "$1" = "map-docker" ]; then map_docker_group $2; exit; fi
 if [ "$1" = "install-all" ]; then
   set_variables
   install_java
-  su - $INSTALLUSER /opt/currfs/setup.sh install-nvm
-  su - $INSTALLUSER /opt/currfs/setup.sh install-aws-cli
-  su - $INSTALLUSER /opt/currfs/setup.sh install-gh
-  su - $INSTALLUSER /opt/currfs/setup.sh install-sdk
-  su - $INSTALLUSER /opt/currfs/setup.sh install-flutter $FLUTTER_DEFAULT_VERSION
+  su - $INSTALLUSER /opt/setup.sh install-nvm
+  su - $INSTALLUSER /opt/setup.sh install-aws-cli
+  su - $INSTALLUSER /opt/setup.sh install-gh
+  su - $INSTALLUSER /opt/setup.sh install-sdk
+  su - $INSTALLUSER /opt/setup.sh install-flutter $FLUTTER_DEFAULT_VERSION
 fi
 
 if [ "$1" = "start" ]; then app_start; exit; fi
