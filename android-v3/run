@@ -7,7 +7,8 @@ IMAGE_TAG="ubuntu:24.04"
 
 ## These variables usually do not change
 NET_NAME=bridge1
-DATA_FOLDER=udata
+APPS_FOLDER=apps
+APPS_PATH=/opt/$APPS_FOLDER
 APP_USER_NAME=user1
 SHARED_GROUP_NAME=d_staff
 SHARED_GROUP_ID=110011
@@ -30,7 +31,7 @@ auto_create_bridge() {
 
 
 create_data_folder() {
-  if [ ! -d $PWD/$DATA_FOLDER ]; then mkdir -p $PWD/$DATA_FOLDER ; fi
+  if [ ! -d $PWD/$APPS_FOLDER ]; then mkdir -p $PWD/$APPS_FOLDER ; fi
 }
 
 
@@ -58,11 +59,11 @@ app_create_user() {
     # does not work on Macos as user id is below min range 1000, so we use a new shared group instead
     groupadd -g $SHARED_GROUP_ID $SHARED_GROUP_NAME
 
-    chown -R root:$SHARED_GROUP_NAME /opt/$DATA_FOLDER
-    chmod -R ug+rwx /opt/$DATA_FOLDER
+    chown -R root:$SHARED_GROUP_NAME $APPS_PATH
+    chmod -R ug+rwx $APPS_PATH
   
     # create home folder in specific location
-    # -m -d "/opt/$DATA_FOLDER/$APP_USER_NAME"
+    # -m -d "$APPS_PATH/$APP_USER_NAME"
     useradd -m -G $SHARED_GROUP_NAME -s /bin/bash $APP_USER_NAME
   fi
 }
@@ -82,7 +83,7 @@ app_setup_users() {
 
 
 app_start_github_runner_agent() {
-  GH_RUNNER_PATH="/opt/$DATA_FOLDER/gh"
+  GH_RUNNER_PATH="$APPS_PATH/gh"
   if [ ! -f $GH_RUNNER_PATH/actions-runner/.credentials ]; then
     echo "Runner not configured, running shell"
     /bin/sh
