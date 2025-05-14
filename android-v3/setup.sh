@@ -9,8 +9,14 @@ export NVM_DIR=$APPS_PATH/.nvm
 export NODE_VERSION=20.19.1
 export NODE_PATH=$NVM_DIR/v${NODE_VERSION}/lib/node_modules
 export FLUTTER_DEFAULT_VERSION=3.29.3
+
 export ANDROID_PLATFORM_VER=33
 export ANDROID_BUILD_TOOL_VER=35.0.1
+export ANDROID_NDK_VERSION=27.2.12479018
+export ANDROID_CMAKE_VERSION=3.31.6
+export ANDROID_CMDTOOLS_VERSION=13114758
+export ANDROID_EMULATOR_VERSION=7395805
+
 export ANDROID_HOME=$APPS_PATH/android/sdk
 export ANDROID_SDK="${ANDROID_HOME}"
 export ANDROID_SDK_ROOT="${ANDROID_HOME}"
@@ -77,9 +83,9 @@ install_android_sdk() {
   # https://dl.google.com/android/repository/emulator-darwin_x64-7395805.zip
   # https://dl.google.com/android/repository/emulator-linux_x64-7395805.zip
   # https://dl.google.com/android/repository/emulator-windows_x64-7395805.zip
-  # CMDTOOLS_FILE=commandlinetools-linux-8512546_latest.zip
-  CMDTOOLS_FILE=commandlinetools-linux-9477386_latest.zip
-  EMULATOR_FILE=emulator-linux_x64-7395805.zip
+
+  CMDTOOLS_FILE=commandlinetools-linux-${ANDROID_CMDTOOLS_VERSION}_latest.zip
+  EMULATOR_FILE=emulator-linux_x64-${ANDROID_EMULATOR_VERSION}.zip
 
   # change to sdkmanager for linux/mac or sdkmanager.bat for windows same for avdmanager
   SDKMAN=sdkmanager
@@ -106,7 +112,7 @@ install_android_sdk() {
   # Install the minimum set of tools to compile an Android app
   # patcher:v4 and tools will be automatically installed
   yes | $SDKMAN platform-tools "platforms;android-$ANDROID_PLATFORM_VER" "build-tools;$ANDROID_BUILD_TOOL_VER" \
-    "ndk;27.1.12297006" "cmake;3.18.1" $EMULATOR_PKG
+    "ndk;$ANDROID_NDK_VERSION" "cmake;$ANDROID_CMAKE_VERSION" $EMULATOR_PKG
 }
 
 install_nvm() {
