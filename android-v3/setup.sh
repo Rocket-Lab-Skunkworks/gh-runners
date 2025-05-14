@@ -1,7 +1,7 @@
 #!/bin/sh
 
-export DATA_FOLDER=udata
-export APPS_PATH=/opt/$DATA_FOLDER
+export APPS_FOLDER=apps
+export APPS_PATH=/opt/$APPS_FOLDER
 export INSTALLUSER=user1
 
 
