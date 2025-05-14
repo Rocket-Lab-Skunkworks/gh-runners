@@ -58,14 +58,15 @@ install_java() {
 
   #  chromium-browser \  # for website monitoring
   #  python3 python3-pip \  # for aws-cli
-  #  libicu70 tzdata \  # for github actions runner
+  #  libicu74 tzdata \  # for github actions runner
   #  build-essential  # for building some react native packages
   DEBIAN_FRONTEND=noninteractive apt -y --no-install-recommends install unzip zip curl ca-certificates \
     git openjdk-21-jdk gnupg openssh-client procps \
     chromium-browser \
     python3 python3-pip \
     libicu74 tzdata \
-    build-essential vim-tiny htop
+    build-essential \
+    vim-tiny htop
 }
 
 
