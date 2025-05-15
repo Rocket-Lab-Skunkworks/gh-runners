@@ -67,12 +67,14 @@ install_java() {
   #  libicu74 tzdata \  # for github actions runner
   #  build-essential  # for building some react native packages
   DEBIAN_FRONTEND=noninteractive apt -y --no-install-recommends install unzip zip curl ca-certificates \
-    git openjdk-21-jdk gnupg openssh-client procps \
+    git openjdk-17-jdk openjdk-21-jdk gnupg openssh-client procps \
     chromium-browser \
     python3 python3-pip \
     libicu74 tzdata \
     build-essential \
     vim-tiny htop
+
+  update-java-alternatives --set /usr/lib/jvm/java-1.17.0-openjdk-amd64
 }
 
 
