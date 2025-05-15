@@ -5,7 +5,7 @@ Files in this repository help setup custom github runners to build Android and M
 Android system can also run deployments to AWS via the AWS cli tool
 
 # Usage - Android
-To create a new runner follow these steps:
+To create a new runner follow these steps, which will use the latest files in the android-v3 folder:
 ```
 # Create a folder in the location you want to place the contents for the container.  Usually in a folder with same name as container
 mkdir -p $HOME/vmc/lnx-vm99
@@ -43,8 +43,7 @@ exit
 ./run start
 
 # check log to see if github agent is running
-./run log
-
+./run logs
 ```
 
 
